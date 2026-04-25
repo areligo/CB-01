@@ -3,106 +3,98 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Te Amo — Pop Art AR</title>
+  <title>Te Amo — AR</title>
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { overflow: hidden; background: #000; }
+    body { overflow: hidden; background: #fff; }
 
     #splash {
       position: fixed; inset: 0; z-index: 999;
-      background: #fef01b;
+      background: #fff;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 24px;
-      font-family: 'Impact', 'Arial Black', sans-serif;
       transition: opacity 0.6s;
+      overflow: hidden;
     }
 
-    #dots-bg {
-      position: absolute; inset: 0; overflow: hidden; pointer-events: none;
-    }
-    .dot {
-      position: absolute; border-radius: 50%;
-      animation: floatDot linear infinite;
-      opacity: 0;
-    }
-    @keyframes floatDot {
-      0%   { transform: translateY(110vh) scale(0.4); opacity: 0; }
-      10%  { opacity: 0.85; }
-      90%  { opacity: 0.85; }
-      100% { transform: translateY(-80px) scale(1.1); opacity: 0; }
+    #halftone-canvas {
+      position: absolute; inset: 0;
+      pointer-events: none;
     }
 
-    #splash-title {
+    .splash-content {
       position: relative; z-index: 2;
-      font-size: 4rem;
-      color: #fff;
-      text-shadow:
-        4px 4px 0 #0057ff,
-        8px 8px 0 #ff0066,
-        12px 12px 0 #000;
-      letter-spacing: 6px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 24px;
+    }
+
+    #main-title {
+      font-family: 'Arial Black', 'Impact', sans-serif;
+      font-size: clamp(4rem, 18vw, 7rem);
+      font-weight: 900;
+      color: #000;
+      letter-spacing: 10px;
       text-transform: uppercase;
+      line-height: 1;
     }
 
     #splash-sub {
-      position: relative; z-index: 2;
-      font-family: 'Arial Black', sans-serif;
+      font-family: Arial, sans-serif;
       font-size: 0.85rem;
-      color: #000;
-      background: #fff;
-      border: 3px solid #000;
-      padding: 8px 18px;
+      color: #333;
       text-align: center;
+      padding: 0 2rem;
       max-width: 300px;
       line-height: 1.5;
-      box-shadow: 4px 4px 0 #000;
     }
 
     #splash button {
-      position: relative; z-index: 2;
       padding: 14px 40px;
-      background: #ff0066;
+      background: #1a6fff;
       border: 4px solid #000;
       color: #fff;
-      font-family: 'Impact', sans-serif;
-      font-size: 1.4rem;
+      font-family: 'Arial Black', sans-serif;
+      font-size: 1.1rem;
       letter-spacing: 3px;
       text-transform: uppercase;
       cursor: pointer;
-      box-shadow: 6px 6px 0 #000;
+      box-shadow: 5px 5px 0 #000;
       transition: transform 0.1s, box-shadow 0.1s;
     }
     #splash button:active {
-      transform: translate(3px, 3px);
-      box-shadow: 3px 3px 0 #000;
+      transform: translate(3px,3px);
+      box-shadow: 2px 2px 0 #000;
     }
 
     #hint {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
       z-index: 100;
-      background: #fef01b;
+      background: #fff;
       border: 3px solid #000;
       color: #000;
       padding: 10px 22px;
-      font-family: 'Impact', sans-serif;
-      font-size: 1rem;
+      font-family: 'Arial Black', sans-serif;
+      font-size: 0.85rem;
       letter-spacing: 2px;
       box-shadow: 4px 4px 0 #000;
       pointer-events: none;
       display: none;
+      white-space: nowrap;
     }
   </style>
 </head>
 <body>
 
 <div id="splash">
-  <div id="dots-bg"></div>
-  <div id="splash-title">TE AMO</div>
-  <div id="splash-sub">Apunta tu cámara al marcador Hiro para ver el mensaje en realidad aumentada</div>
-  <button onclick="startAR()">ABRIR CÁMARA</button>
+  <canvas id="halftone-canvas"></canvas>
+  <div class="splash-content">
+    <div id="main-title">TE AMO</div>
+    <div id="splash-sub">Apunta tu cámara al marcador Hiro para ver el mensaje en realidad aumentada</div>
+    <button onclick="startAR()">ABRIR CÁMARA</button>
+  </div>
 </div>
 
 <div id="hint">APUNTA AL MARCADOR ▼</div>
@@ -112,102 +104,84 @@
   style="display:none"
   embedded
   arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
-  renderer="logarithmicDepthBuffer: true; antialias: true;"
+  renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true;"
   vr-mode-ui="enabled: false">
 
   <a-marker preset="hiro" id="marker">
 
-    <!-- Fondo pop art amarillo -->
-    <a-plane
-      position="0 0.01 0"
-      rotation="-90 0 0"
-      width="4" height="2.4"
-      color="#fef01b"
-      opacity="0.95">
-    </a-plane>
+    <!-- Puntos halftone azules en el plano, sin fondo -->
+    <!-- fila z=-1.2 -->
+    <a-sphere position="-1.8 0.06 -1.2" radius="0.06" color="#1a6fff" opacity="0.55" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position="-1.2 0.06 -1.2" radius="0.10" color="#2266ee" opacity="0.70" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position="-0.6 0.06 -1.2" radius="0.05" color="#4488ff" opacity="0.50" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 0.0 0.06 -1.2" radius="0.12" color="#1a6fff" opacity="0.80" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 0.6 0.06 -1.2" radius="0.07" color="#3377ff" opacity="0.60" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 1.2 0.06 -1.2" radius="0.09" color="#2266ee" opacity="0.70" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 1.8 0.06 -1.2" radius="0.05" color="#4488ff" opacity="0.50" segments-height="8" segments-width="8"></a-sphere>
+    <!-- fila z=-0.6 -->
+    <a-sphere position="-1.5 0.06 -0.6" radius="0.11" color="#1a6fff" opacity="0.75" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position="-0.9 0.06 -0.6" radius="0.06" color="#4488ff" opacity="0.55" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position="-0.3 0.06 -0.6" radius="0.09" color="#2266ee" opacity="0.65" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 0.3 0.06 -0.6" radius="0.05" color="#5599ff" opacity="0.50" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 0.9 0.06 -0.6" radius="0.12" color="#1a6fff" opacity="0.80" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 1.5 0.06 -0.6" radius="0.07" color="#3377ff" opacity="0.60" segments-height="8" segments-width="8"></a-sphere>
+    <!-- fila z=0.0 -->
+    <a-sphere position="-1.8 0.06  0.0" radius="0.08" color="#3377ff" opacity="0.65" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position="-1.2 0.06  0.0" radius="0.05" color="#5599ff" opacity="0.50" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position="-0.6 0.06  0.0" radius="0.11" color="#1a6fff" opacity="0.80" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 0.0 0.06  0.0" radius="0.07" color="#4488ff" opacity="0.60" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 0.6 0.06  0.0" radius="0.09" color="#2266ee" opacity="0.70" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 1.2 0.06  0.0" radius="0.05" color="#4488ff" opacity="0.55" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 1.8 0.06  0.0" radius="0.12" color="#1a6fff" opacity="0.80" segments-height="8" segments-width="8"></a-sphere>
+    <!-- fila z=0.6 -->
+    <a-sphere position="-1.5 0.06  0.6" radius="0.09" color="#2266ee" opacity="0.70" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position="-0.9 0.06  0.6" radius="0.11" color="#1a6fff" opacity="0.80" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position="-0.3 0.06  0.6" radius="0.06" color="#3377ff" opacity="0.55" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 0.3 0.06  0.6" radius="0.10" color="#2266ee" opacity="0.75" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 0.9 0.06  0.6" radius="0.05" color="#5599ff" opacity="0.50" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 1.5 0.06  0.6" radius="0.12" color="#1a6fff" opacity="0.85" segments-height="8" segments-width="8"></a-sphere>
+    <!-- fila z=1.2 -->
+    <a-sphere position="-1.8 0.06  1.2" radius="0.05" color="#4488ff" opacity="0.50" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position="-1.2 0.06  1.2" radius="0.10" color="#1a6fff" opacity="0.75" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position="-0.6 0.06  1.2" radius="0.07" color="#3377ff" opacity="0.60" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 0.0 0.06  1.2" radius="0.09" color="#2266ee" opacity="0.70" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 0.6 0.06  1.2" radius="0.06" color="#5599ff" opacity="0.55" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 1.2 0.06  1.2" radius="0.11" color="#1a6fff" opacity="0.80" segments-height="8" segments-width="8"></a-sphere>
+    <a-sphere position=" 1.8 0.06  1.2" radius="0.08" color="#4488ff" opacity="0.65" segments-height="8" segments-width="8"></a-sphere>
 
-    <!-- Trama de puntos pop art en el plano (simulados con esferas pequeñas) -->
-    <a-entity id="halftone-dots"></a-entity>
+    <!-- Círculos azules GRANDES flotantes -->
+    <a-sphere position="-1.7 0.5  0.9" radius="0.32" color="#1a6fff" opacity="0.88"
+      animation="property: position; to: -1.7 1.2 0.9; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine">
+    </a-sphere>
+    <a-sphere position=" 1.6 0.4  0.6" radius="0.40" color="#2266ee" opacity="0.92"
+      animation="property: position; to: 1.6 1.3 0.6; dur: 1600; dir: alternate; loop: true; easing: easeInOutSine">
+    </a-sphere>
+    <a-sphere position=" 0.2 0.6 -1.0" radius="0.24" color="#3377ff" opacity="0.82"
+      animation="property: position; to: 0.2 1.4 -1.0; dur: 1800; dir: alternate; loop: true; easing: easeInOutSine">
+    </a-sphere>
+    <a-sphere position="-0.6 0.3  1.4" radius="0.34" color="#1a6fff" opacity="0.88"
+      animation="property: position; to: -0.6 1.1 1.4; dur: 2200; dir: alternate; loop: true; easing: easeInOutSine">
+    </a-sphere>
+    <a-sphere position=" 1.8 0.5 -0.8" radius="0.44" color="#1a6fff" opacity="0.90"
+      animation="property: position; to: 1.8 1.5 -0.8; dur: 1400; dir: alternate; loop: true; easing: easeInOutSine">
+    </a-sphere>
+    <a-sphere position="-1.4 0.4 -0.6" radius="0.28" color="#4488ff" opacity="0.85"
+      animation="property: position; to: -1.4 1.2 -0.6; dur: 1900; dir: alternate; loop: true; easing: easeInOutSine">
+    </a-sphere>
+    <a-sphere position=" 0.8 0.3  1.2" radius="0.20" color="#2266ee" opacity="0.80"
+      animation="property: position; to: 0.8 1.0 1.2; dur: 2400; dir: alternate; loop: true; easing: easeInOutSine">
+    </a-sphere>
 
-    <!-- Texto principal estilo pop art: capas de color -->
-    <!-- Sombra negra -->
+    <!-- Texto TE AMO negro bold, flotando -->
     <a-text value="TE AMO"
       align="center"
-      position="0.08 1.55 -0.08"
+      position="0 1.3 0"
       color="#000000"
-      width="8"
+      width="9"
       font="mozillavr"
-      letter-spacing="12">
+      letter-spacing="14"
+      animation="property: position; from: 0 1.2 0; to: 0 1.5 0; dur: 1800; dir: alternate; loop: true; easing: easeInOutSine">
     </a-text>
-    <!-- Sombra azul -->
-    <a-text value="TE AMO"
-      align="center"
-      position="0.04 1.58 -0.04"
-      color="#0057ff"
-      width="8"
-      font="mozillavr"
-      letter-spacing="12">
-    </a-text>
-    <!-- Texto principal blanco con bounce -->
-    <a-entity
-      position="0 0 0"
-      animation="property: position; from: 0 0 0; to: 0 0.12 0; dur: 900; dir: alternate; loop: true; easing: easeInOutSine">
-      <a-text value="TE AMO"
-        align="center"
-        position="0 1.6 0"
-        color="#ffffff"
-        width="8"
-        font="mozillavr"
-        letter-spacing="12">
-      </a-text>
-    </a-entity>
-
-    <!-- Subtexto estilo cómic -->
-    <a-plane position="0 0.7 0" width="2.8" height="0.45" color="#ff0066" rotation="0 0 0">
-    </a-plane>
-    <a-text value="POP ART BY TI"
-      align="center"
-      position="0 0.7 0.01"
-      color="#fef01b"
-      width="4.5"
-      font="mozillavr"
-      letter-spacing="5">
-    </a-text>
-
-    <!-- Puntos azules flotantes en 3D alrededor -->
-    <a-sphere position="-1.4 1.1 0.2" radius="0.09" color="#0057ff"
-      animation="property: position; to: -1.4 1.7 0.2; dur: 1200; dir: alternate; loop: true; easing: easeInOutSine">
-    </a-sphere>
-    <a-sphere position="1.4 1.3 0.1" radius="0.12" color="#0057ff"
-      animation="property: position; to: 1.4 1.9 0.1; dur: 900; dir: alternate; loop: true; easing: easeInOutSine">
-    </a-sphere>
-    <a-sphere position="-1.0 0.3 0.6" radius="0.07" color="#0057ff"
-      animation="property: position; to: -1.0 1.0 0.6; dur: 1500; dir: alternate; loop: true; easing: easeInOutSine">
-    </a-sphere>
-    <a-sphere position="1.0 0.4 0.5" radius="0.10" color="#0099ff"
-      animation="property: position; to: 1.0 1.1 0.5; dur: 1100; dir: alternate; loop: true; easing: easeInOutSine">
-    </a-sphere>
-    <a-sphere position="0.3 0.2 0.9" radius="0.06" color="#0057ff"
-      animation="property: position; to: 0.3 0.9 0.9; dur: 800; dir: alternate; loop: true; easing: easeInOutSine">
-    </a-sphere>
-    <a-sphere position="-0.5 1.5 0.3" radius="0.08" color="#00aaff"
-      animation="property: position; to: -0.5 2.1 0.3; dur: 1300; dir: alternate; loop: true; easing: easeInOutSine">
-    </a-sphere>
-    <a-sphere position="0.6 1.4 -0.2" radius="0.11" color="#0057ff"
-      animation="property: position; to: 0.6 2.0 -0.2; dur: 1050; dir: alternate; loop: true; easing: easeInOutSine">
-    </a-sphere>
-    <a-sphere position="-1.2 0.6 -0.3" radius="0.07" color="#0099ff"
-      animation="property: position; to: -1.2 1.3 -0.3; dur: 1400; dir: alternate; loop: true; easing: easeInOutSine">
-    </a-sphere>
-    <a-sphere position="1.3 0.7 -0.1" radius="0.09" color="#00aaff"
-      animation="property: position; to: 1.3 1.4 -0.1; dur: 1600; dir: alternate; loop: true; easing: easeInOutSine">
-    </a-sphere>
-
-    <!-- Detalles pop art: esquinas con cuadros de color -->
-    <a-plane position="-1.7 0.05 0.9" rotation="-90 0 0" width="0.4" height="0.4" color="#ff0066"></a-plane>
-    <a-plane position="1.7 0.05 0.9"  rotation="-90 0 0" width="0.4" height="0.4" color="#0057ff"></a-plane>
-    <a-plane position="-1.7 0.05 -0.9" rotation="-90 0 0" width="0.4" height="0.4" color="#0057ff"></a-plane>
-    <a-plane position="1.7 0.05 -0.9"  rotation="-90 0 0" width="0.4" height="0.4" color="#ff0066"></a-plane>
 
   </a-marker>
 
@@ -215,21 +189,56 @@
 </a-scene>
 
 <script>
-  // Puntos flotantes en el splash
-  const bg = document.getElementById('dots-bg');
-  const colors = ['#0057ff','#0099ff','#00aaff','#ff0066','#000'];
-  for (let i = 0; i < 30; i++) {
-    const d = document.createElement('div');
-    d.className = 'dot';
-    const size = 10 + Math.random() * 28;
-    d.style.width  = size + 'px';
-    d.style.height = size + 'px';
-    d.style.background = colors[Math.floor(Math.random() * colors.length)];
-    d.style.left = Math.random() * 100 + 'vw';
-    d.style.animationDuration  = (5 + Math.random() * 7) + 's';
-    d.style.animationDelay     = (Math.random() * 8) + 's';
-    bg.appendChild(d);
+  const canvas = document.getElementById('halftone-canvas');
+  const ctx = canvas.getContext('2d');
+  let dots = [];
+  let W, H;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    buildDots();
   }
+
+  function buildDots() {
+    dots = [];
+    const spacing = 30;
+    for (let x = 0; x < W + spacing; x += spacing) {
+      for (let y = 0; y < H + spacing; y += spacing) {
+        const baseR = 2 + Math.random() * 10;
+        dots.push({
+          x: x + (Math.random()-0.5)*8,
+          y: y + (Math.random()-0.5)*8,
+          baseR,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.3 + Math.random() * 0.7,
+          color: ['#1a6fff','#2266ee','#3377ff','#4488ff','#5599ff','#aaccff'][Math.floor(Math.random()*6)],
+          alpha: 0.25 + Math.random() * 0.55
+        });
+      }
+    }
+  }
+
+  let t = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    t += 0.01;
+    for (const d of dots) {
+      const pulse = Math.sin(t * d.speed + d.phase);
+      const r = Math.max(0, d.baseR + pulse * d.baseR * 0.45);
+      ctx.globalAlpha = d.alpha + pulse * 0.12;
+      ctx.fillStyle = d.color;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
 
   function startAR() {
     const splash = document.getElementById('splash');
@@ -244,12 +253,8 @@
   document.addEventListener('DOMContentLoaded', () => {
     const marker = document.getElementById('marker');
     if (marker) {
-      marker.addEventListener('markerFound', () => {
-        document.getElementById('hint').style.display = 'none';
-      });
-      marker.addEventListener('markerLost', () => {
-        document.getElementById('hint').style.display = 'block';
-      });
+      marker.addEventListener('markerFound', () => { document.getElementById('hint').style.display = 'none'; });
+      marker.addEventListener('markerLost',  () => { document.getElementById('hint').style.display = 'block'; });
     }
   });
 </script>
